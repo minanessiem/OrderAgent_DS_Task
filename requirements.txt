@@ -1,0 +1,22 @@
+# Web Frameworks & Servers
+flask
+fastapi
+uvicorn[standard]
+gunicorn
+
+# LLM & LangChain
+langchain
+langchain-openai
+openai
+
+# Configuration Management
+hydra-core
+omegaconf
+
+# Utilities
+python-dotenv
+requests
+
+# Data Handling
+pandas
+numpy

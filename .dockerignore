@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Output and logs
+# outputs/
+logs/
+*.log
+
+# Notebooks
+# notebooks/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Docker related files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Local configuration overrides or sensitive files
+*.local
+*.env
+secrets/

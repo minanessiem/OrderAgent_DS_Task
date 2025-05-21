@@ -1,0 +1,67 @@
+version: '3.8' # Using a recent Docker Compose version.
+
+services:
+  frontend:
+    build:
+      context: . # Build from Dockerfile in the project root.
+      dockerfile: Dockerfile
+    container_name: chatbot_frontend # Explicit container name for easier reference.
+    ports:
+      - "8000:8000" # Map host port 8000 to container port 8000 (Flask app).
+    volumes:
+      # Mount local ./src to /app/src in container for live code updates.
+      - ./src:/app/src
+      # Mount local ./configs for dynamic configuration changes.
+      - ./configs:/app/configs
+      # Mount local ./data; useful if app modifies data or for updating mock data.
+      - ./data:/app/data
+    environment:
+      - FLASK_APP=src/frontend/app.py # For Flask CLI.
+      - FLASK_ENV=development # Enables Flask debug mode and auto-reloader.
+      # Pass OPENAI_API_KEY from .env file or shell environment.
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+    # Override Dockerfile CMD to run Flask dev server.
+    command: flask run --host=0.0.0.0 --port=8000
+    depends_on:
+      # Ensure mock_api service starts before this one.
+      - mock_api
+    networks:
+      - chatbot_network # Connect to our custom network.
+
+  mock_api:
+    build:
+      context: . # Using the same Dockerfile as the frontend.
+      dockerfile: Dockerfile
+    container_name: mock_api_service # Explicit name for the mock API container.
+    ports:
+      - "8001:8001" # Map host port 8001 to container port 8001 (FastAPI app).
+    volumes:
+      # Mount local ./src for live code updates.
+      - ./src:/app/src
+      # Mount local ./configs.
+      - ./configs:/app/configs
+      # Mount local ./data, especially for mock_orders.json.
+      - ./data:/app/data
+    environment:
+      # If using Hydra for mock_api config:
+      # - MOCK_API_CONFIG_PATH=/app/configs
+      # - MOCK_API_CONFIG_NAME=mock_api_config.yaml
+      # Custom port for the mock API, used in its app.py.
+      - MOCK_API_PORT=8001
+    # Override Dockerfile CMD to run Uvicorn for FastAPI.
+    # `src.mock_api_service.app:app` points to the FastAPI instance.
+    # `--reload` for Uvicorn's hot-reloading.
+    command: uvicorn src.mock_api_service.app:app --host 0.0.0.0 --port 8001 --reload
+    networks:
+      - chatbot_network # Also on our custom network.
+
+networks:
+  # Custom bridge network for inter-service communication.
+  # Services can reach each other using their service names (e.g., http://mock_api:8001).
+  chatbot_network:
+    driver: bridge
+
+# Optional: Define a named volume for persistent data if bind mounts aren't suitable.
+# For this project, bind mounts for mock data are likely sufficient.
+# volumes:
+#   mock_api_data:
