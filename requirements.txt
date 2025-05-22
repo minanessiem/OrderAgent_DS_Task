@@ -17,6 +17,9 @@ omegaconf
 python-dotenv
 requests
 
+# ORM and Data Validation for Mock API
+sqlmodel
+
 # Data Handling
 pandas
 numpy
