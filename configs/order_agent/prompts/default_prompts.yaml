@@ -1,0 +1,4 @@
+# configs/order_agent/prompts/default_prompt.yaml
+
+system_prompt: "prompts/order_agent/system_prompt.md"
+user_prompt: "prompts/order_agent/user_prompt.md"

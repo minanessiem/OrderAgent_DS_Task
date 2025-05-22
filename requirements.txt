@@ -12,6 +12,7 @@ openai
 # Configuration Management
 hydra-core
 omegaconf
+pydantic
 
 # Utilities
 python-dotenv

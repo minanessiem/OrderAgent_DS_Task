@@ -1,0 +1,24 @@
+# configs/order_agent/default.yaml
+
+defaults:
+  - _self_
+  - /llm: "openai_gpt4"
+  - prompts: "default_prompts"
+
+agent:
+  verbose: true # this is still not used
+
+# Memory Config
+memory:
+  type: "ConversationBufferMemory"
+
+
+mock_api_service:
+  base_url: "http://localhost:8001"
+  endpoints:
+    - name: "get_order"
+      url: "/orders/{order_id}"
+      method: "GET"
+    - name: "cancel_order"
+      url: "/orders/{order_id}/cancel"
+      method: "POST"
