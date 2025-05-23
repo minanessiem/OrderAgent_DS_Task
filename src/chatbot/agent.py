@@ -2,9 +2,7 @@ from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from omegaconf import DictConfig
 
-from src.chatbot.prompts.prompt_utils import load_prompt_from_file
-
-def create_order_management_agent(llm, tools: list, agent_config: DictConfig, prompt_config: DictConfig) -> AgentExecutor:
+def create_order_management_agent(llm, tools: list, agent_config: DictConfig, system_prompt_content: str) -> AgentExecutor:
     """
     Creates and returns an AgentExecutor for order management.
 
@@ -19,8 +17,6 @@ def create_order_management_agent(llm, tools: list, agent_config: DictConfig, pr
     Returns:
         A configured LangChain AgentExecutor.
     """
-    system_prompt_path = prompt_config.system_prompt 
-    system_prompt_content = load_prompt_from_file(system_prompt_path)
 
     # Define the prompt template for the OpenAI Tools agent
     # It requires "input" for user query, "agent_scratchpad" for intermediate steps,
@@ -46,6 +42,7 @@ def create_order_management_agent(llm, tools: list, agent_config: DictConfig, pr
         agent=agent,
         tools=tools,
         verbose=agent_config.get("verbose", True), # Get verbose from config, default True
+        return_intermediate_steps=True,
         # handle_parsing_errors=True # Consider adding for robustness
     )
 

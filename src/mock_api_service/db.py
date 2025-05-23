@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from sqlmodel import create_engine, SQLModel, Session
-
+from .models import Order, ExperimentTelemetryEvent
 # Construct path to config file relative to this (db.py) file's location
 CONFIG_FILE_PATH = Path("/app/configs/mock_api_config.json")
 

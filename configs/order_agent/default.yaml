@@ -8,6 +8,12 @@ defaults:
 agent:
   verbose: true # this is still not used
 
+telemetry_client:
+  base_url: "http://localhost:8001"
+  endpoints:
+    log_event: "/telemetry/log_event"
+
+
 # Memory Config
 memory:
   type: "ConversationBufferMemory"

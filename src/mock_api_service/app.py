@@ -4,9 +4,13 @@ from sqlmodel import Session
 from typing import Optional, List
 
 # Import from the new structured files
-from .models import OrderRead, CancelOrderRequest, OrderStatus
+from .models import (
+    OrderRead, CancelOrderRequest, OrderStatus,
+    ExperimentTelemetryEventCreate, ExperimentTelemetryEventRead
+)
 from .db import get_session, create_db_and_tables, engine as db_engine # Renamed engine for clarity
 from . import order_crud
+from . import telemetry_crud
 from . import db_seeder
 
 app = FastAPI(title="Mock Order Management API")
@@ -104,6 +108,34 @@ async def filter_orders_by_status(
     
     db_orders = order_crud.get_orders_by_status(session, statuses=statuses, limit=limit)
     return db_orders
+
+
+@app.post("/telemetry/log_event", response_model=ExperimentTelemetryEventRead, summary="Log a Telemetry Event")
+async def log_telemetry_event(
+    event_data: ExperimentTelemetryEventCreate,
+    session: Session = Depends(get_session)
+):
+    """
+    Receives and stores a single telemetry event.
+    """
+    return telemetry_crud.create_telemetry_event(session=session, event_data=event_data)
+
+@app.get("/telemetry/events/{session_id}", response_model=List[ExperimentTelemetryEventRead], summary="Get Telemetry Events for a Session")
+async def get_session_telemetry_events(
+    session_id: str,
+    limit: int = Query(1000, ge=1, le=5000, description="Maximum number of events to retrieve."),
+    session: Session = Depends(get_session)
+):
+    """
+    Retrieves all telemetry events associated with a specific session_id,
+    ordered by timestamp.
+    """
+    events = telemetry_crud.get_telemetry_events_by_session(session=session, session_id=session_id, limit=limit)
+    if not events:
+        # It's okay for a session to have no events yet, or if the session_id is wrong.
+        # Return an empty list instead of 404 to make client handling simpler.
+        return []
+    return events
 
 # To run this app locally (outside Docker) for quick tests, if needed:
 if __name__ == "__main__":

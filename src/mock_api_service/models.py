@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 from enum import Enum
-from typing import Optional, List
-from sqlmodel import Field, SQLModel, Relationship
+from typing import Optional, List, Any, Dict
+from sqlmodel import Field, SQLModel, Relationship, JSON, Column
 import uuid
 import random
 import string
@@ -88,3 +88,30 @@ class OrderForCancellationResponse(BaseModel):
     class Config:
         orm_mode = True
         use_enum_values = True
+
+
+class ExperimentTelemetryEventBase(SQLModel):
+    session_id: str = Field(index=True)
+    event_type: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    order_id_identified: Optional[str] = None
+    user_query: Optional[str] = None
+    agent_model_name: Optional[str] = Field(default=None)
+    system_prompt_name: Optional[str] = Field(default=None)
+    agent_generated_payload: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    tool_name: Optional[str] = None
+    tool_input: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON)) # Assuming tool inputs are JSON-like
+    tool_raw_response: Optional[str] = None # Raw text response from tool
+    tool_response_success: Optional[bool] = None
+    final_agent_message_to_user: Optional[str] = None
+    additional_notes: Optional[str] = None
+
+class ExperimentTelemetryEvent(ExperimentTelemetryEventBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+class ExperimentTelemetryEventCreate(ExperimentTelemetryEventBase):
+    pass
+
+class ExperimentTelemetryEventRead(ExperimentTelemetryEventBase):
+    id: int
+    timestamp: datetime # Ensure timestamp is present in read model
