@@ -1,0 +1,42 @@
+# configs/experiment/default.yaml
+
+defaults:
+  - _self_
+  - /order_agent: default # Points to a config file in configs/order_agent
+  - /customer_agent: default # Points to a config file in configs/customer_agent
+
+# --- Experiment Setup ---
+experiment_name: "OrderAgent_Performance_Eval_v1"
+output_base_dir: "outputs/experiments/" # Base directory for any experiment-specific outputs (logs, etc.)
+order_agent_initial_greeting: "Hello! This is your Friendly Order Agent. How can I assist you today?" 
+logging_level: "INFO" # Options: "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+
+
+
+# --- Conversation Simulation Settings ---
+conversation_settings:
+  min_turns_per_conversation: 2
+  max_turns_per_conversation: 7
+  # Number of conversations to run for EACH Order Agent Prompt x Customer Agent Persona combination
+  num_conversations_per_permutation: 5 # Start with a smaller number for faster testing, e.g., 2-5
+  turn_delay_seconds: 0.1
+
+# --- Database Seeding for Experiment Run ---
+# These settings will be used to reseed the database before each full experiment run
+# or if specified by the experiment runner script.
+db_seeder_settings:
+  reseed_before_run: true # Whether to clear and reseed the DB
+  num_orders_to_seed: 600   # Example: smaller than the 1000 for quicker reseeds during dev
+  num_customers_to_seed: 100
+  seed_value: 12345       # For reproducibility of the seeded data
+  # min_order_days_ago and max_order_days_ago are now primarily configured in mock_api_config.json's seeder section
+  # but could be passed to the reseed function if you want to override them from here.
+  # For simplicity here, we assume db_seeder.py will use its defaults from mock_api_config.json
+  # or you can add them here if you want the experiment config to explicitly control this aspect of seeding too.
+  # min_order_days_ago: 1
+  # max_order_days_ago: 45
+
+# --- Telemetry & Reporting ---
+# The telemetry analyzer will pick up the agent_model_name and system_prompt_name
+# from the telemetry events themselves. This config doesn't directly control that,
+# but it's good to be aware of how results will be grouped.
