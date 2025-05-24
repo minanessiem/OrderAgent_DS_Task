@@ -4,13 +4,13 @@ from sqlmodel import Session
 from typing import Optional, List
 
 # Import from the new structured files
-from .models import (
+from .crud.models import (
     OrderRead, CancelOrderRequest, OrderStatus,
     ExperimentTelemetryEventCreate, ExperimentTelemetryEventRead
 )
 from .db import get_session, create_db_and_tables, engine as db_engine # Renamed engine for clarity
-from . import order_crud
-from . import telemetry_crud
+from .crud import order_crud
+from .crud import telemetry_crud
 from . import db_seeder
 
 app = FastAPI(title="Mock Order Management API")
@@ -69,6 +69,23 @@ async def cancel_order_endpoint(
             
     # If successful, result already contains the correctly structured "order" data
     return result
+
+
+@app.get("/dev/orders/random", response_model=Optional[OrderRead], tags=["Orders"])
+def read_random_order(session: Session = Depends(get_session)):
+    """
+    Retrieve a single random order from the database.
+    Returns order details or null if no orders are found.
+    """
+    order = order_crud.get_random_order(session=session)
+    if not order:
+        # You could return a 404 if no orders exist, or an empty body with 200 OK
+        # For simplicity, returning None will result in a null body with 200 OK
+        # if response_model is Optional[OrderRead].
+        # To return 404:
+        # raise HTTPException(status_code=404, detail="No orders found in the database.")
+        return None
+    return order
 
 @app.post("/admin/reseed", summary="Clear ALL Orders and Reseed Mock Data")
 async def reseed_data_endpoint(
