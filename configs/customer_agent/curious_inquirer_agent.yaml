@@ -1,0 +1,14 @@
+# configs/customer_agent/curious_inquirer_agent.yaml
+
+defaults:
+  - _self_
+  - /llm: openai_gpt4_temp03
+  - prompts: curious_inquirer_prompts
+
+customer_agent:
+  mock_api_base_url: "http://localhost:8001"
+  customer_name: "Curious Inquirer"
+  order_id: null
+  min_turns_per_conversation: 1
+  max_turns_per_conversation: 3
+

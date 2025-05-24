@@ -1,0 +1,6 @@
+# configs/llm/openai_gpt4_temp.yaml
+
+provider: "openai"
+model_name: "gpt-4o"
+temperature: 0.3
+api_key_env_var: "OPENAI_API_KEY"

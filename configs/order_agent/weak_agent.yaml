@@ -1,0 +1,6 @@
+defaults:
+  - default  # Inherits from configs/order_agent/default.yaml
+  - override prompts: weak_agent_prompt  # Uses the weak_agent_prompt.yaml
+
+# This file inherits all the settings from configs/order_agent/default.yaml
+# and only overrides the prompts to use the weak_agent_prompt
