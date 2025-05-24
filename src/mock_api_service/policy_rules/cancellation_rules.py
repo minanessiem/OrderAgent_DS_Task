@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from typing import Tuple
-from ..models import Order, OrderStatus
+from ..crud.models import Order, OrderStatus
 
 def check_within_time_window(order: Order, policy_config: dict) -> Tuple[bool, str]:
     """

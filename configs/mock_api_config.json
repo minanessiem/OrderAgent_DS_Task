@@ -4,8 +4,10 @@
   },
   "seeder": {
     "initial_seed_value": 42,
-    "num_orders_to_seed": 50,
-    "num_customers_to_seed": 10
+    "num_orders_to_seed": 600,
+    "num_customers_to_seed": 100,
+    "min_days_ago": 5,
+    "max_days_ago": 20
   },
   "policies": {
     "cancellation": {

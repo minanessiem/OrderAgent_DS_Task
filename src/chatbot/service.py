@@ -9,11 +9,11 @@ import os
 
 from langchain.memory import ConversationBufferMemory
 
-from src.chatbot.llm_providers import get_llm
+from src.utils.llm_providers import get_llm
 from src.chatbot.tools.order_tracking_tool import OrderTrackingTool
 from src.chatbot.tools.order_cancellation_tool import OrderCancellationTool
 from src.chatbot.agent import create_order_management_agent
-from src.chatbot.prompts.prompt_utils import load_prompt_from_file
+from src.utils.prompt_utils import load_prompt_from_file
 # New imports for telemetry and payload extraction
 from src.chatbot.utils.telemetry_client import TelemetryClient
 from src.chatbot.utils.payload_extractor import extract_telemetry_payload
@@ -24,27 +24,27 @@ load_dotenv()
 class ChatbotService:
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
-        self.llm = get_llm(cfg.order_agent.llm)
+        self.llm = get_llm(cfg.llm)
 
         # Load base system prompt content once
-        self.base_system_prompt_content = load_prompt_from_file(cfg.order_agent.prompts.system_prompt)
+        self.base_system_prompt_content = load_prompt_from_file(cfg.prompts.system_prompt)
         
         # Initialize TelemetryClient
-        telemetry_cfg = cfg.order_agent.telemetry_client
+        telemetry_cfg = cfg.telemetry_client
         self.telemetry_client = TelemetryClient(
             base_url=telemetry_cfg.base_url,
             log_event_endpoint=telemetry_cfg.endpoints.log_event
         )
 
         # Initialize Tools (existing logic)
-        track_order_config = next(ep for ep in cfg.order_agent.mock_api_service.endpoints if ep.name == "get_order")
+        track_order_config = next(ep for ep in cfg.mock_api_service.endpoints if ep.name == "get_order")
         self.order_tracking_tool = OrderTrackingTool(
-            mock_api_base_url=cfg.order_agent.mock_api_service.base_url,
+            mock_api_base_url=cfg.mock_api_service.base_url,
             track_order_endpoint_template=track_order_config.url
         )
-        cancel_order_config = next(ep for ep in cfg.order_agent.mock_api_service.endpoints if ep.name == "cancel_order")
+        cancel_order_config = next(ep for ep in cfg.mock_api_service.endpoints if ep.name == "cancel_order")
         self.order_cancellation_tool = OrderCancellationTool(
-            mock_api_base_url=cfg.order_agent.mock_api_service.base_url,
+            mock_api_base_url=cfg.mock_api_service.base_url,
             cancel_order_endpoint_template=cancel_order_config.url
         )
         self.tools = [self.order_tracking_tool, self.order_cancellation_tool]
@@ -59,7 +59,7 @@ class ChatbotService:
         self.agent_executor = create_order_management_agent(
             llm=self.llm,
             tools=self.tools,
-            agent_config=cfg.order_agent.agent,
+            agent_config=cfg.agent,
             system_prompt_content=formatted_system_prompt # Pass formatted prompt
         )
         
@@ -73,8 +73,8 @@ class ChatbotService:
     async def process_message(self, user_query: str, session_id: str, agent_config_for_telemetry: DictConfig):
         """
         Processes a user query, logs telemetry, and returns the agent's response.
+        agent_config_for_telemetry is the same config passed to __init__ (i.e. self.cfg)
         """
-        # Extract specific config values for telemetry
         agent_model_name = agent_config_for_telemetry.llm.model_name
         system_prompt_path = agent_config_for_telemetry.prompts.system_prompt
         system_prompt_name = os.path.basename(system_prompt_path)

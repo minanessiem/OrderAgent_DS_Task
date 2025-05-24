@@ -1,10 +1,11 @@
 from datetime import date, datetime, timedelta
 from typing import Optional, Dict, Any, List
 
-from sqlmodel import Session, select, col
+from sqlmodel import Session, select, col, func
+import random # Ensure random is imported if not already
 
-from .models import Order, OrderStatus, OrderUpdate, Customer, OrderRead, OrderForCancellationResponse
-from . import policy_checker # Import the new policy_checker
+from .models import Order, OrderStatus, OrderUpdate, Customer, OrderRead, OrderForCancellationResponse, CustomerSummaryForOrder
+from .. import policy_checker # Import the new policy_checker
 
 
 def get_order_by_id(session: Session, order_id: str) -> Optional[Order]:
@@ -132,3 +133,47 @@ def check_order_return_eligibility(session: Session, order_id: str) -> Dict[str,
         "message": policy_decision.message,
         "details": {"violated_rule": policy_decision.violated_rule}
     }
+
+def get_random_order(session: Session) -> Optional[OrderRead]:
+    """
+    Fetches a random order from the database.
+    Returns the order details using OrderRead model, or None if no orders exist.
+    """
+    # Get total count of orders
+    count_statement = select(func.count(Order.order_id))
+    total_orders = session.exec(count_statement).one_or_none()
+
+    if not total_orders or total_orders == 0:
+        return None
+
+    # Generate a random offset
+    # Note: For very large tables, offset can be inefficient.
+    # An alternative for SQLite specifically might be ORDER BY RANDOM() LIMIT 1,
+    # but SQLModel might not directly support RANDOM() in a portable way without raw SQL.
+    # For simplicity and given it's a mock service, offset is acceptable.
+    # If there's only one order, offset should be 0.
+    random_offset = random.randint(0, total_orders - 1) if total_orders > 0 else 0
+    
+    statement = select(Order).offset(random_offset).limit(1)
+    order = session.exec(statement).first()
+    
+    if order:
+        # Manually prepare the data for OrderRead, especially the customer part
+        order_data_for_validation = {
+            "order_id": order.order_id,
+            "customer_id": order.customer_id,
+            "ordered_on": order.ordered_on,
+            "status": order.status,
+            "cancellation_reason": order.cancellation_reason,
+            "last_updated": order.last_updated,
+            "customer": None # Default to None
+        }
+        
+        if order.customer:
+            # Manually create CustomerSummaryForOrder from the order.customer ORM object
+            order_data_for_validation["customer"] = CustomerSummaryForOrder.model_validate(order.customer)
+            # or CustomerSummaryForOrder(customer_id=order.customer.customer_id, is_premium=order.customer.is_premium)
+
+        # Now validate the prepared dictionary
+        return OrderRead.model_validate(order_data_for_validation)
+    return None

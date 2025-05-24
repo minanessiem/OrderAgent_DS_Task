@@ -5,7 +5,7 @@ from sqlmodel import Field, SQLModel, Relationship, JSON, Column
 import uuid
 import random
 import string
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 def generate_short_id(length: int = 6) -> str:
@@ -29,12 +29,11 @@ class CustomerCreate(CustomerBase):
 class CustomerRead(CustomerBase):
     customer_id: str
 
-class CustomerSummaryForOrder(BaseModel): # Using Pydantic's BaseModel for this simple DTO
+class CustomerSummaryForOrder(BaseModel):
     customer_id: str
     is_premium: bool
 
-    class Config:
-        orm_mode = True # Allow creating from ORM objects (like the Customer linked to Order)
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderStatus(str, Enum):
